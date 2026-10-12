@@ -6,7 +6,15 @@ module FFmpegGUI
     LANGUAGE_HINT       = "en, ja, zh or es"
 
     I18n.config.default_locale = :en
-    I18n.config.loaders << I18n::Loader::YAML.embed("#{__DIR__}/../locales")
+    {% begin %}
+    I18n.config.loaders << I18n::Loader::YAML.new(
+      I18n::Loader::YAML.normalize_raw_translations([
+        {% for language in SUPPORTED_LANGUAGES %}
+          {{ read_file("#{__DIR__}/../locales/#{language.id}.yml") }},
+        {% end %}
+      ] of String)
+    )
+    {% end %}
     I18n.init
 
     def self.activate(locale : String? = nil) : Nil

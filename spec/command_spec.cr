@@ -5,8 +5,8 @@ require "../src/command"
 describe FFmpegGUI::Settings do
   it "keeps shell metacharacters and spaces in a single input argument" do
     settings = FFmpegGUI::Settings.new
-    settings.input = "/tmp/a '日本語'; $(touch nope).mp4"
-    settings.output = "/tmp/my output.mp4"
+    settings.input = File.expand_path("a '日本語'; $(touch nope).mp4", Dir.tempdir)
+    settings.output = File.expand_path("my output.mp4", Dir.tempdir)
     args = settings.args
     args[args.index("-i").not_nil! + 1].should eq(settings.input)
     args.last.should eq(settings.output)
