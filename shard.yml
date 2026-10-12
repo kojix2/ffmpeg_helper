@@ -1,0 +1,17 @@
+name: ffmpeg_helper
+version: 0.1.0
+description: Native FFmpeg command builder and runner using UIng
+crystal: ">= 1.21.0"
+license: MIT
+
+dependencies:
+  uing:
+    github: kojix2/uing
+    commit: d4114eeb828df6cd643c66e490dc9da9813be63b
+  i18n:
+    github: crystal-i18n/i18n
+    version: ~> 0.2.2
+
+targets:
+  ffmpeg_helper:
+    main: ffmpeg_helper.cr

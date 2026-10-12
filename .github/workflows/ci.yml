@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: crystal-lang/install-crystal@v1
+        with:
+          crystal: latest
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg libgtk-3-dev xvfb xauth
+      - name: Install Crystal dependencies
+        run: shards install
+      - name: Check formatting
+        run: crystal tool format --check ffmpeg_helper.cr src spec
+      - name: Build
+        run: make build
+      - name: Run tests
+        run: make test
+      - name: Run FFmpeg integration tests
+        run: make integration
+      - name: Run GUI smoke test
+        run: xvfb-run -a make smoke
