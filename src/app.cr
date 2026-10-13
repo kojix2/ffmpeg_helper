@@ -78,6 +78,7 @@ module FFmpegGUI
       @toolbar.append_separator
       @about_item = @toolbar.append_button(I18n.t!("ui.about"), icon(:info))
       @window.toolbar = @toolbar
+      @window.set_content_size(920, 620)
       @stop_item.disable
       @open_item.tooltip = I18n.t!("ui.open_tooltip")
       @run_item.tooltip = I18n.t!("ui.start_tooltip")
@@ -266,7 +267,7 @@ module FFmpegGUI
       body.append(@sidebar)
       body.append(UIng::Separator.new(:vertical))
 
-      main = UIng::Grid.new(padded: true)
+      main = UIng::Box.new(:vertical, padded: true)
       file_form = UIng::Form.new(padded: true)
       input_row = UIng::Box.new(:horizontal, padded: true)
       input_row.append(@input, true)
@@ -278,7 +279,7 @@ module FFmpegGUI
       file_form.append(I18n.t!("ui.input"), input_row)
       file_form.append(I18n.t!("ui.output"), output_row)
       @files.child = file_form
-      main.append(@files, 0, 0, 1, 1, true, :fill, false, :fill)
+      main.append(@files)
       preview_page = UIng::Box.new(:vertical, padded: true)
       preview_page.append(@timeline.area, true)
       @preview_controls.append(button(I18n.t!("ui.mark_in")) { @timeline.trim_at_cursor(false) })
@@ -306,7 +307,7 @@ module FFmpegGUI
       media_box.append(@info)
       media_box.append(UIng::Label.new(I18n.t!("ui.media_help")))
       @tabs.append(I18n.t!("ui.tab_media"), media_box, margined: true)
-      main.append(@tabs, 0, 1, 1, 1, true, :fill, true, :fill)
+      main.append(@tabs, true)
       body.append(main, true)
       root.append(body, true)
       root.append(UIng::Separator.new(:horizontal))
@@ -368,7 +369,7 @@ module FFmpegGUI
       return if @updating
       s = settings
       @quality_label.text = "CRF #{s.crf}"
-      @command.text = s.command
+      replace_read_only_text(@command, s.command)
       @timeline.duration = @duration || 0.0
       @timeline.from = Settings.seconds(s.start) || 0.0
       @timeline.ending = Settings.seconds(s.finish) || @duration || 0.0
@@ -377,7 +378,7 @@ module FFmpegGUI
       @timeline.subtitle = "#{PRESETS[@preset].title}    /    #{@duration ? Timeline.time(@duration.not_nil!) : I18n.t!("ui.duration_unknown")}"
       @timeline.area.queue_redraw_all
     rescue ex : ArgumentError
-      @command.text = ex.message.to_s
+      replace_read_only_text(@command, ex.message.to_s)
       @status.text = ex.message.to_s
     end
 
@@ -424,6 +425,13 @@ module FFmpegGUI
 
     private def set_enabled(control, enabled)
       enabled ? control.enable : control.disable
+    end
+
+    private def replace_read_only_text(control : UIng::MultilineEntry, text : String) : Nil
+      control.read_only = false
+      control.text = text
+    ensure
+      control.read_only = true
     end
 
     private def choose_input
@@ -505,7 +513,7 @@ module FFmpegGUI
       @timeline.progress = 0.0
       @progress.value = @run_duration ? 0 : -1
       @last_log = ""
-      @log.text = ""
+      replace_read_only_text(@log, "")
       @status.text = I18n.t!("ui.converting")
       @tabs.selected = 3
       busy(true)
@@ -560,7 +568,7 @@ module FFmpegGUI
         job.tick
         if @last_log != job.log
           @last_log = job.log
-          @log.text = @last_log
+          replace_read_only_text(@log, @last_log)
         end
         ratio = @run_duration.try { |duration| duration > 0 ? (job.seconds / duration).clamp(0.0, 0.99) : 0.0 }
         if ratio

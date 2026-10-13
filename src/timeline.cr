@@ -186,8 +186,6 @@ module FFmpegGUI
     def free
       @frame.try &.free
       @frame = nil
-      @font.free
-      @heading.free
     end
 
     def self.time(seconds : Float64) : String
